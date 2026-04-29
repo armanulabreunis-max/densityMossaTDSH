@@ -23,18 +23,20 @@
         /* Kap ve Su */
         #tank {
             width: 300px; height: 400px; border: 6px solid #ddd; border-top: none;
-            position: relative; background: rgba(255,255,255,0.05); border-radius: 0 0 15px 15px;
+            position: relative; /* BU ÇOK ÖNEMLİ: İçindeki objeler artık burayı merkez alacak */
+            background: rgba(255,255,255,0.05); border-radius: 0 0 15px 15px;
         }
         #water {
-            position: absolute; bottom: 0; width: 100%; height: 200px; /* Su tam orta hizaya kadar */
+            position: absolute; bottom: 0; width: 100%; height: 200px; 
             background: rgba(0, 120, 255, 0.4); border-top: 3px solid #00d4ff; z-index: 1;
         }
 
-        /* Madde (Küp) */
+        /* Madde (Küp) - ARTIK TANKIN İÇİNDE */
         #object {
             width: 50px; height: 50px; position: absolute;
-            left: 125px; top: -100px; z-index: 5; display: none;
-            transition: top 2s cubic-bezier(0.6, -0.28, 0.735, 0.045); /* Düşme ivmesi */
+            left: 125px; /* (300px tank - 50px küp) / 2 = Tam orta */
+            top: -60px; /* Tankın hemen dışında başlar */
+            z-index: 5; display: none;
             text-align: center; line-height: 50px; color: white; font-weight: bold;
             border-radius: 4px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
         }
@@ -49,9 +51,8 @@
 </div>
 
 <div id="stage">
-    <div id="object"></div>
     <div id="tank">
-        <div id="water"></div>
+        <div id="object"></div> <div id="water"></div>
     </div>
     <div id="status">Listeden bir madde seçin.</div>
 </div>
@@ -69,7 +70,6 @@ const substances = [
     { name: "Oak Wood", d: 0.75, color: "#a04000" },
     { name: "Gasoline", d: 0.7, color: "#d35400" },
     { name: "Mushroom", d: 0.24, color: "#edbb99" }
-    
 ];
 
 const itemList = document.getElementById('item-list');
@@ -85,39 +85,33 @@ substances.forEach(s => {
 });
 
 function dropObject(substance) {
-    // 1. Reset
     obj.style.display = 'block';
     obj.style.transition = 'none';
-    obj.style.top = '-100px'; 
+    obj.style.top = '-60px'; // Tankın tavanının hemen üstü
     obj.style.backgroundColor = substance.color;
     obj.innerText = substance.name.substring(0,2);
     statusText.innerText = substance.name + " bırakılıyor...";
 
-    // 2. Animasyon (Hafif gecikmeli başlar)
     setTimeout(() => {
-        // Su yüzeyinin bulunduğu üst koordinat (Tank 400px yüksekliğinde, su 200px)
-        // Tank stage içinde ortalı. Stage yüksekliği 100vh. 
-        // Kabın tabanı stage'in tam ortasında sayılır.
-        
         let targetTop;
-        const tankBottom = 607; // Kabın içi taban noktası
-        const waterSurface = 417; // Su yüzeyi noktası
-        const midWater = 517; // Suyun ortası
+        // Koordinatlar artık tankın içine (400px boyuna) göre:
+        const tankBottom = 350;    // 400 (boy) - 50 (küp) = Tam dibe değer
+        const waterSurface = 150;  // 400 - 200 (su boyu) - 50 (küp) = Suyun üstüne değer
+        const midWater = 250;      // Suyun içi
 
         if (substance.d > 1.0) {
-            targetTop = tankBottom; // BATMA: En dibe iner
+            targetTop = tankBottom;
             obj.style.transition = 'top 2s ease-in';
         } else if (substance.d === 1.0) {
-            targetTop = midWater; // ASKI: Suyun ortasında durur
+            targetTop = midWater;
             obj.style.transition = 'top 2.2s ease-out';
         } else {
-            targetTop = waterSurface; // YÜZME: Su yüzeyinde kalır
-            obj.style.transition = 'top 1.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)'; // Hafif sekme efekti
+            targetTop = waterSurface;
+            obj.style.transition = 'top 1.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
         }
 
         obj.style.top = targetTop + "px";
 
-        // Durum güncelleme
         setTimeout(() => {
             if (substance.d > 1) statusText.innerText = substance.name + " HAS SUNK! (d > 1)";
             else if (substance.d < 1) statusText.innerText = substance.name + " IS FLOATING (d < 1)";
