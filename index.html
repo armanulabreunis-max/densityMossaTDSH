@@ -121,7 +121,7 @@ function dropObject(substance) {
         setTimeout(() => {
             if (substance.d > 1) statusText.innerText = substance.name + " HAS SUNK! (d > 1)";
             else if (substance.d < 1) statusText.innerText = substance.name + " IS FLOATING (d < 1)";
-            else statusText.innerText = substance.name + " HAS LEVITATED! (d = 1)";
+            else statusText.innerText = substance.name + " HAS HUNG! (d = 1)";
         }, 2000);
     }, 50);
 }
